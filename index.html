@@ -499,7 +499,17 @@ async function init() {
     const res = await fetch(API_URL);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
-    LEASES    = data.leases    || [];
+    // Ensure all numeric fields are actual numbers (Supabase returns NUMERIC as strings)
+    LEASES = (data.leases || []).map(l => ({
+      ...l,
+      sf:           parseInt(l.sf)          || 0,
+      monthlyBase:  parseFloat(l.monthlyBase) || 0,
+      annualCost:   parseFloat(l.annualCost)  || 0,
+      freeMonths:   parseInt(l.freeMonths)   || 0,
+      lat:          parseFloat(l.lat)         || 0,
+      lng:          parseFloat(l.lng)         || 0,
+      npvRemaining: 0,
+    }));
     CASHFLOWS = data.cashflows || {};
   } catch (e) {
     console.error('Failed to load data:', e);
@@ -675,7 +685,16 @@ async function uploadFile() {
     // Reload data silently in background
     const freshRes = await fetch(API_URL);
     const freshData = await freshRes.json();
-    LEASES    = freshData.leases    || [];
+    LEASES = (freshData.leases || []).map(l => ({
+      ...l,
+      sf:           parseInt(l.sf)            || 0,
+      monthlyBase:  parseFloat(l.monthlyBase)  || 0,
+      annualCost:   parseFloat(l.annualCost)   || 0,
+      freeMonths:   parseInt(l.freeMonths)     || 0,
+      lat:          parseFloat(l.lat)           || 0,
+      lng:          parseFloat(l.lng)           || 0,
+      npvRemaining: 0,
+    }));
     CASHFLOWS = freshData.cashflows || {};
     drawPie();
     drawExpBars();
